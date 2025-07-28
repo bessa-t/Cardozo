@@ -1,0 +1,18 @@
+# Arquivo .gitignore
+
+# Ambiente Virtual do Python
+# Ignora a pasta do ambiente virtual local
+venv/
+
+# Arquivos de Cache do Python
+__pycache__/
+*.pyc
+
+# Arquivos de Checkpoint do Jupyter
+.ipynb_checkpoints/
+
+# Pasta de Saída de Relatórios
+relatorios/
+
+# Arquivos de configuração de IDEs
+.vscode/
