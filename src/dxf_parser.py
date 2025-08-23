@@ -59,13 +59,13 @@ class DXFParser:
             if layer == "concrete":
                 raise ValueError("Concrete sections should be represented as polylines, not circles.")
         return {
-            "concrete_section" : self.concrete,
-             "steel_bars" : self.steel_bars
+            "concrete_data" : self.concrete,
+             "steel_data" : self.steel_bars
         }
     
-test = DXFParser("/home/tarso/projects/biaxal_bending/Biaxial-Bending-Diagram/dxf_files/section 7.dxf")
-print(test.parse())
+
 # Future improvements:
 # - Cases with multiple holes
 # - Section doesnt have to be pre-normalized
 # - More robust error handling and reporting
+# - Using @dataclass to export structured data
