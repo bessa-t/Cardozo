@@ -58,7 +58,10 @@ class DXFParser:
 
             if layer == "concrete":
                 raise ValueError("Concrete sections should be represented as polylines, not circles.")
-        return self.concrete, self.steel_bars
+        return {
+            "concrete_section" : self.concrete,
+             "steel_bars" : self.steel_bars
+        }
     
 test = DXFParser("/home/tarso/projects/biaxal_bending/Biaxial-Bending-Diagram/dxf_files/section 7.dxf")
 print(test.parse())
