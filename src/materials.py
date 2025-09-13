@@ -3,8 +3,6 @@
 
 import numpy as np
 from sectionproperties.pre.library import rectangular_section
-
-
 from concreteproperties import (
     Concrete,
     ConcreteLinear,
@@ -46,14 +44,3 @@ steel = SteelBar(
 # --- Concrete Materials Library ---
 
 # Concrete C25 (NBR 6118)
-CONCRETE_C25 = Concrete(
-    name="C25",
-    density=25e-9,  # N/mm^3
-    stress_strain_profile=ParabolaRectangle(
-        compressive_strength=25,  # fck in MPa
-        compressive_strain=0.002,
-        ultimate_strain=0.0035,
-    ),
-    alpha_cc=0.85,
-    gamma_c=1.4,
-)

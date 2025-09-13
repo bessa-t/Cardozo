@@ -60,7 +60,7 @@ class DXFParser:
                 raise ValueError("Concrete sections should be represented as polylines, not circles.")
         return {
             "concrete_data" : self.concrete,
-             "steel_data" : self.steel_bars
+             "steel_bars_data" : self.steel_bars
         }
     
 
