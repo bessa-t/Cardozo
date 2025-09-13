@@ -1,8 +1,5 @@
 # src/geometry_builder.py
 # OOP implementation of a geometry builder that constructs section objects from raw data.
-
-import matplotlib.pyplot as plt
-
 import math
 from shapely import Polygon
 from sectionproperties.pre.geometry import Geometry
@@ -82,8 +79,8 @@ class GeometryBuilder:
                 y=y,
                 n =16)
         final_reinforced_section = ConcreteSection(geometry=composite_geometry)
-        final_reinforced_section.plot_section()
-        plt.show()
+        return final_reinforced_section
+        
 
         
 

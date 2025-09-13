@@ -7,7 +7,12 @@ from materials import concrete, steel
 
 parser = DXFParser("/home/tarso/projects/biaxal_bending/Biaxial-Bending-Diagram/dxf_files/section 7.dxf")
 builder = GeometryBuilder()
-print("===================================================")
-builder.build_section(parser.parse(),concrete,steel)
-print("===================================================")
-#print(test2.concrete_section(dxf_parser.test))
+section= builder.build_section(parser.parse(),concrete,steel)
+
+#testando
+
+bb_res =section.biaxial_bending_diagram(n_points=24, progress_bar=False)
+
+bb_res.plot_diagram(eng=True)
+
+plt.show()
