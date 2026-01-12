@@ -1,16 +1,12 @@
 # src/materials.py
 # OOP implementation of material definitions for structural analysis.
 
-import numpy as np
-from sectionproperties.pre.library import rectangular_section
 from concreteproperties import (
     Concrete,
     ConcreteLinear,
-    ConcreteSection,
     RectangularStressBlock,
     SteelBar,
     SteelElasticPlastic,
-    add_bar_rectangular_array,
 )
 
 

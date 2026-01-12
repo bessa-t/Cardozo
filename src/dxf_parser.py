@@ -1,37 +1,49 @@
 # src/dxf_parser.py
-# OOP implementation of a DXF parser with built-in normalization.
 
 import ezdxf
 from dataclasses import dataclass
-from typing import List, Tuple, Dict, Optional
+from typing import List, Tuple, Dict
 
-# Define strictly what this module exports.
-# This prevents "magic string" errors in the main code.
+# --- DTO Definition (Data Transfer Object) --
+@dataclass
+class ParsedSteelBar:
+    """
+    Represents the geometric data of a steel bar extracted from the DXF.
+    
+    Attributes:
+        center (Tuple[float, float]): The (x, y) coordinates of the bar's center.
+        radius (float): The radius of the bar in the same units as the DXF file.
+    """
+    center: Tuple[float, float]
+    radius: float
 
 @dataclass
 class ParsedGeometry:
     """
-    Data Transfer Object (DTO) that enforces the structure of the parsing result.
+    Strictly defines the data structure returned by the parser.
+    Used for type-checking and autocompletion in the main application.
     """
     concrete_polygons: List[List[Tuple[float, float]]]
-    steel_bars: List[Dict[str, float]]
+    steel_bars: List[ParsedSteelBar]
 
+# --- Main Parser Class ---
 class DXFParser:
     """
     Parses a DXF file to extract and normalize geometry for structural analysis.
+    Implements a filtering mechanism to ignore non-structural layers.
     """
-   def __init__(self, dxf_filepath: str):
+    # Constants for layer names (Avoids Magic Strings)
+    LAYER_CONCRETE = "concrete"
+    LAYER_STEEL = "steel bars"
+
+    def __init__(self, dxf_filepath: str):
         """
         Initializes the DXF parser.
         
         Args:
             dxf_filepath: Absolute or relative path to the .dxf file.
-            
-        Raises:
-            FileNotFoundError: If the file does not exist.
-            ValueError: If the file is not a valid DXF or is corrupted.
         """
-        try:
+        try: 
             self.doc = ezdxf.readfile(dxf_filepath)
         except IOError:
              # IOError covers FileNotFoundError and permission issues
@@ -40,55 +52,63 @@ class DXFParser:
             raise ValueError(f"Corrupted or invalid DXF file: {e}")
             
         self.msp = self.doc.modelspace()
+
+    def parse(self) -> ParsedGeometry:
+        """
+        Iterates over DXF entities and extracts structural geometry.
         
+        Returns:
+            ParsedGeometry: An object containing clean lists of concrete and steel elements.
+        """
+        concrete_polygons = []
+        steel_bars = []
 
-    def parse(self):
-        """Extracts and normalizes geometry from the DXF file."""
-        self.concrete = []
-        self.steel_bars = []
-        # Query entities by layer names
-        polyline_query = self.msp.query('LWPOLYLINE')
-        circle_query = self.msp.query('CIRCLE')
-        for polyline in polyline_query:
+        # 1. Process Polylines (Expected: Concrete Boundaries)
+        for polyline in self.msp.query('LWPOLYLINE'):
             layer = polyline.dxf.layer.lower()
-            if not polyline.is_closed:
-                raise ValueError("All polylines must be closed.")
-            
-            if layer == "concrete":
-                raw_vertices = list(polyline.get_points())
-                cleaned_vertices = [(float(vertex[0]), float(vertex[1])) for vertex in raw_vertices]
-                self.concrete.append(cleaned_vertices)
 
-            if layer == "steel bars":
-                raise ValueError("Steel bars should be represented as circles, not polylines.")
-            if  layer != "concrete" and layer != "steel bars":
-                raise ValueError("Invalid layer found. Required layers are 'concrete' or 'steel bars'.")
-               
-        if len(self.concrete) >2:
-            raise ValueError("More than two polylines found. Only concrete sections with one hole are allowed.")
-        for circle in circle_query:
+            if layer == self.LAYER_CONCRETE:
+                if not polyline.is_closed:
+                    raise ValueError(f"Geometry Error: Concrete polyline on layer '{layer}' must be CLOSED.")
+                
+                # Extract X, Y points and cast to float
+                points = [(float(v[0]), float(v[1])) for v in polyline.get_points()]
+                concrete_polygons.append(points)
+
+            elif layer == self.LAYER_STEEL:
+                raise ValueError(f"Validation Error: Found Polyline on '{self.LAYER_STEEL}'. Steel bars must be CIRCLES.")
+            
+            # Note: Other layers are implicitly ignored.
+
+        # 2. Process Circles (Expected: Steel Bars)
+        for circle in self.msp.query('CIRCLE'):
             layer = circle.dxf.layer.lower()
 
-            if layer != "concrete" and layer != "steel bars":
-                raise ValueError("Invalid layer found. Required layers are 'concrete' or 'steel bars'.")
-            circle_data = {
-                'center': (circle.dxf.center.x, circle.dxf.center.y),
-                'radius': circle.dxf.radius
-            }
-        
-            if layer == "steel bars":
-                self.steel_bars.append(circle_data)
+            if layer == self.LAYER_STEEL:
+                c_x = float(circle.dxf.center.x)
+                c_y = float(circle.dxf.center.y)
+                r   = float(circle.dxf.radius)
 
-            if layer == "concrete":
-                raise ValueError("Concrete sections should be represented as polylines, not circles.")
-        return {
-            "concrete_data" : self.concrete,
-             "steel_bars_data" : self.steel_bars
-        }
+                new_bar = ParsedSteelBar(center=(c_x, c_y), radius=r)
+                steel_bars.append(new_bar)
+
+            elif layer == self.LAYER_CONCRETE:
+                raise ValueError(f"Validation Error: Found Circle on '{self.LAYER_CONCRETE}'. Concrete must be POLYLINES.")
+
+        # 3. Post-Parsing Validation
+        if not concrete_polygons:
+            raise ValueError(f"Input Error: No geometry found on layer '{self.LAYER_CONCRETE}'.")
+        
+        if len(concrete_polygons) > 2:
+            raise ValueError("Topology Error: More than 2 concrete polygons found. Only single or hollow sections supported.")
+
+        return ParsedGeometry(
+            concrete_polygons=concrete_polygons,
+            steel_bars=steel_bars
+        )
     
 
 # Future improvements:
 # - Cases with multiple holes
 # - Section doesnt have to be pre-normalized
 # - More robust error handling and reporting
-# - Using @dataclass to export structured data
