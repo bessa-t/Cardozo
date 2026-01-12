@@ -2,22 +2,45 @@
 # OOP implementation of a DXF parser with built-in normalization.
 
 import ezdxf
+from dataclasses import dataclass
+from typing import List, Tuple, Dict, Optional
+
+# Define strictly what this module exports.
+# This prevents "magic string" errors in the main code.
+
+@dataclass
+class ParsedGeometry:
+    """
+    Data Transfer Object (DTO) that enforces the structure of the parsing result.
+    """
+    concrete_polygons: List[List[Tuple[float, float]]]
+    steel_bars: List[Dict[str, float]]
 
 class DXFParser:
     """
     Parses a DXF file to extract and normalize geometry for structural analysis.
     """
-    def __init__(self, dxf_filepath: str):
-        """Initializes the parser, loads the doc, and finds the geometry offset."""
+   def __init__(self, dxf_filepath: str):
+        """
+        Initializes the DXF parser.
+        
+        Args:
+            dxf_filepath: Absolute or relative path to the .dxf file.
+            
+        Raises:
+            FileNotFoundError: If the file does not exist.
+            ValueError: If the file is not a valid DXF or is corrupted.
+        """
         try:
             self.doc = ezdxf.readfile(dxf_filepath)
-        except (FileNotFoundError, ezdxf.DXFError) as e:
-            raise ValueError(f"Could not read DXF file: {dxf_filepath}!")
-        else:
-            print(f"DXF file '{dxf_filepath}' loaded successfully.")
-
+        except IOError:
+             # IOError covers FileNotFoundError and permission issues
+            raise FileNotFoundError(f"File not found or not accessible: {dxf_filepath}")
+        except ezdxf.DXFError as e:
+            raise ValueError(f"Corrupted or invalid DXF file: {e}")
+            
         self.msp = self.doc.modelspace()
-
+        
 
     def parse(self):
         """Extracts and normalizes geometry from the DXF file."""
