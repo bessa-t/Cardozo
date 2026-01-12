@@ -1,9 +1,9 @@
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-from geometry_builder import GeometryBuilder
-from dxf_parser import DXFParser
-from materials import concrete, steel
+from backend.geometry_builder import GeometryBuilder
+from backend.dxf_parser import DXFParser
+from backend.materials import concrete, steel
 
 parser = DXFParser("/home/tarso/projects/biaxal_bending/Biaxial-Bending-Diagram/data/column_p1/section 7.dxf")
 builder = GeometryBuilder()

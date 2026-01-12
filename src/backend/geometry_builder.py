@@ -12,7 +12,7 @@ from concreteproperties import (
 )
 
 # Local import from your data structure definitions
-from dxf_parser import ParsedGeometry
+from backend.dxf_parser import ParsedGeometry
 
 class GeometryBuilder:
     """
