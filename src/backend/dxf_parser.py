@@ -1,4 +1,4 @@
-# src/dxf_parser.py
+# src/backend/dxf_parser.py
 
 import ezdxf
 from dataclasses import dataclass

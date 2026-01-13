@@ -1,18 +1,24 @@
+# src/main.py
+import sys
 import os
-import matplotlib.pyplot as plt
-import numpy as np
-from backend.geometry_builder import GeometryBuilder
-from backend.dxf_parser import DXFParser
-from backend.materials import concrete, steel
+import customtkinter as ctk
 
-parser = DXFParser("/home/tarso/projects/biaxal_bending/Biaxial-Bending-Diagram/data/column_p1/section 7.dxf")
-builder = GeometryBuilder()
-section= builder.build_section(parser.parse(),concrete,steel)
-#section.plot_section()
-#testando
+# 1. Configuração de Caminhos (Boilerplate profissional)
+# Garante que o Python enxerga a pasta 'src' como raiz, não importa de onde você rode
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(current_dir)
 
-bb_res =section.biaxial_bending_diagram(n_points=24, progress_bar=False)
-bb_res.plot_diagram(eng=True)
+# 2. Importa a Janela (O Frontend)
+from frontend.app_window import App
 
-plt.show()
+# 3. Bloco de Execução Principal
+if __name__ == "__main__":
+    # Configurações globais de aparência (Opcional, mas recomendado ficar aqui)
+    ctk.set_appearance_mode("Dark")
+    ctk.set_default_color_theme("blue")
 
+    # Instancia a aplicação
+    app = App()
+    
+    # Inicia o Loop de Eventos (O programa entra em suspensão aguardando cliques)
+    app.mainloop()
