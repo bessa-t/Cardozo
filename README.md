@@ -1,6 +1,6 @@
 > 🇧🇷 **Para a versão em Português**, [clique aqui](README_pt.md).
 
-# CARDOZO 🏛️
+# Hyperion 🏛️
 
 ### **Computational Analysis for Arbitrary Reinforced Concrete Sections**
 *A Tribute to Brazilian Engineering Genius*
@@ -20,7 +20,7 @@ While Niemeyer dreamt of the shapes, it was Cardozo who made the concrete float.
 
 ## 🏗️ Overview
 
-**Cardozo** is a specialized engineering tool designed to generate **Interaction Diagrams ($N-M_x-M_y$)** for reinforced concrete sections that do not fit into standard templates (rectangular/circular).
+**Hyperion** is a specialized engineering tool designed to generate **Interaction Diagrams ($N-M_x-M_y$)** for reinforced concrete sections that do not fit into standard templates (rectangular/circular).
 
 It leverages **Computational Geometry** to parse raw `.dxf` drawings, applies constitutive laws of materials (following **NBR 6118:2014**), and utilizes the Finite Element Method (Fiber Analysis) to integrate stresses and generate resistance envelopes.
 
