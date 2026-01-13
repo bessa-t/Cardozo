@@ -5,8 +5,8 @@ Application Entry Point.
 This script initializes the environment, configures system paths,
 sets up the GUI theme, and launches the main application loop.
 
-Author: Tarso [Your Last Name]
-Date: 2024
+Author: Tarso Bessa
+Date: 2026
 License: MIT
 """
 
