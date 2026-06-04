@@ -1,18 +1,56 @@
-# Arquivo .gitignore
-
-# Ambiente Virtual do Python
-# Ignora a pasta do ambiente virtual local
-venv/
-
-# Arquivos de Cache do Python
+# Python bytecode and caches
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
 
-# Arquivos de Checkpoint do Jupyter
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Packaging and build outputs
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+*.whl
+
+# PyInstaller generated files
+*.manifest
+*.log
+
+# Keep the project spec file tracked
+!Cardozo.spec
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Jupyter
 .ipynb_checkpoints/
 
-# Pasta de Saída de Relatórios
+# Project-generated output
 relatorios/
+user_space/
 
-# Arquivos de configuração de IDEs
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor and IDE settings
+.idea/
 .vscode/
+*.swp
+*.swo
+*~
