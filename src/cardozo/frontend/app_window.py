@@ -6,14 +6,16 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 
 from cardozo.backend.dxf_parser import DXFParser
 from cardozo.backend.geometry_builder import GeometryBuilder
-from cardozo.data.std_materials import CONCRETE_LIBRARY, STEEL_LIBRARY
+from cardozo.backend.nbr6118 import NBR6118
 
 TRANSLATIONS = {
     "en": {
         "window_title": "Cardozo - Biaxial Bending Analysis",
         "subtitle": "Structural Analysis v1.0",
-        "concrete_class": "Concrete Class:",
-        "steel_grade": "Steel Grade:",
+        "fck": "fck (MPa):",
+        "fy": "fy (MPa):",
+        "gamma_c": "Concrete resistance weighting coefficient (γc):",
+        "gamma_s": "Steel resistance weighting coefficient (γs):",
         "normal_force": "Normal Force (kN):",
         "geometry_dxf": "Geometry (DXF):",
         "select_dxf_placeholder": "Select .dxf file...",
@@ -46,58 +48,62 @@ TRANSLATIONS = {
         "input_error": "Input Error",
         "select_file_warning": "Please select a DXF file first.",
         "invalid_normal_force": "Normal Force must be a valid number.",
+        "invalid_material_inputs": "fck, fy, γc and γs must be valid positive numbers.",
         "calculation_error": "Calculation Error",
         "calculation_error_message": "An error occurred during analysis:\n{error}",
         "geometry_plot_title": "Cross Section View",
         "diagram_title": "Interaction Diagram (N = {n_val} kN)",
     },
     "pt": {
-        "window_title": "Cardozo - Analise de Flexao Biaxial",
-        "subtitle": "Analise Estrutural v1.0",
-        "concrete_class": "Classe do concreto:",
-        "steel_grade": "Tipo de aco:",
-        "normal_force": "Forca normal (kN):",
+        "window_title": "Cardozo - Análise de Flexão Biaxial",
+        "subtitle": "Análise Estrutural v1.0",
+        "fck": "fck (MPa):",
+        "fy": "fy (MPa):",
+        "gamma_c": "Coeficiente de ponderação da resistência do concreto (γc):",
+        "gamma_s": "Coeficiente de ponderação da resistência do aço (γs):",
+        "normal_force": "Força normal (kN):",
         "geometry_dxf": "Geometria (DXF):",
         "select_dxf_placeholder": "Selecione o arquivo .dxf...",
         "browse_file": "Buscar arquivo",
-        "run_analysis": "EXECUTAR ANALISE",
+        "run_analysis": "EXECUTAR ANÁLISE",
         "processing": "Processando...",
         "developed_by": "Desenvolvido por Tarso Bessa\nbessatarso@gmail.com",
         "support": "Apoiar",
         "language": "Idioma:",
-        "tab_geometry": "Previa da Geometria",
-        "tab_results": "Diagrama de Interacao",
-        "geometry_placeholder": "A previa da geometria aparecera aqui.",
-        "results_placeholder": "O diagrama de interacao aparecera aqui.",
+        "tab_geometry": "Prévia da geometria",
+        "tab_results": "Diagrama de interação",
+        "geometry_placeholder": "A prévia da geometria aparecerá aqui.",
+        "results_placeholder": "O diagrama de interação aparecerá aqui.",
         "help_title": "Como preparar seu DXF",
         "help_text": (
             "REQUISITOS DO ARQUIVO DXF:\n\n"
             "1. UNIDADES: O arquivo deve ser desenhado com unidades consistentes.\n"
             "   O software interpreta as coordenadas diretamente.\n\n"
-            "2. CAMADA DO CONCRETO:\n"
-            "   - Desenhe o perimetro do concreto como uma POLYLINE fechada.\n"
-            "   - O nome da camada deve ser exatamente 'concrete'.\n\n"
-            "3. CAMADA DO ACO:\n"
+            "2. LAYER DO CONCRETO:\n"
+            "   - Desenhe o perímetro do concreto como uma POLYLINE fechada.\n"
+            "   - O nome da layer deve ser exatamente 'concrete'.\n\n"
+            "3. LAYER DO AÇO:\n"
             "   - Desenhe as barras como CIRCLES.\n"
-            "   - O nome da camada deve ser exatamente 'steel bars'.\n\n"
-            "4. ORIGEM: Centralize a secao perto de (0,0) para melhor visualizacao."
+            "   - O nome da layer deve ser exatamente 'steel bars'.\n\n"
+            "4. ORIGEM: Centralize a seção perto de (0,0) para melhor visualização."
         ),
         "file_dialog_title": "Selecionar geometria DXF",
         "dxf_files": "Arquivos DXF",
         "all_files": "Todos os arquivos",
         "input_error": "Erro de entrada",
         "select_file_warning": "Selecione um arquivo DXF primeiro.",
-        "invalid_normal_force": "A forca normal deve ser um numero valido.",
-        "calculation_error": "Erro de calculo",
-        "calculation_error_message": "Ocorreu um erro durante a analise:\n{error}",
-        "geometry_plot_title": "Vista da Secao Transversal",
-        "diagram_title": "Diagrama de Interacao (N = {n_val} kN)",
+        "invalid_normal_force": "A força normal deve ser um número válido.",
+        "invalid_material_inputs": "fck, fy, γc e γs devem ser números positivos válidos.",
+        "calculation_error": "Erro de cálculo",
+        "calculation_error_message": "Ocorreu um erro durante a análise:\n{error}",
+        "geometry_plot_title": "Vista da seção transversal",
+        "diagram_title": "Diagrama de interação (N = {n_val} kN)",
     },
 }
 
 LANGUAGE_OPTIONS = {
     "English": "en",
-    "Portugues": "pt",
+    "Português": "pt",
 }
 
 class App(ctk.CTk):
@@ -136,8 +142,10 @@ class App(ctk.CTk):
         """Applies the selected language to all visible static text."""
         self.title(self.tr("window_title"))
         self.sub_label.configure(text=self.tr("subtitle"))
-        self.lbl_concrete.configure(text=self.tr("concrete_class"))
-        self.lbl_steel.configure(text=self.tr("steel_grade"))
+        self.lbl_fck.configure(text=self.tr("fck"))
+        self.lbl_fy.configure(text=self.tr("fy"))
+        self.lbl_gamma_c.configure(text=self.tr("gamma_c"))
+        self.lbl_gamma_s.configure(text=self.tr("gamma_s"))
         self.lbl_n_force.configure(text=self.tr("normal_force"))
         self.lbl_file.configure(text=self.tr("geometry_dxf"))
         self.path_entry.configure(placeholder_text=self.tr("select_dxf_placeholder"))
@@ -174,7 +182,7 @@ class App(ctk.CTk):
         self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
         
         # Push footer to the bottom using row weights
-        self.sidebar_frame.grid_rowconfigure(14, weight=1)
+        self.sidebar_frame.grid_rowconfigure(18, weight=1)
 
         # --- Header ---
         self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="CARDOZO",
@@ -186,35 +194,45 @@ class App(ctk.CTk):
         self.sub_label.grid(row=1, column=0, padx=20, pady=(0, 20))
 
         # --- Section 1: Materials ---
-        self.lbl_concrete = ctk.CTkLabel(self.sidebar_frame, text=self.tr("concrete_class"), anchor="w")
-        self.lbl_concrete.grid(row=2, column=0, padx=20, pady=(10, 0), sticky="w")
-        
-        self.concrete_option = ctk.CTkOptionMenu(self.sidebar_frame, 
-                                                 values=list(CONCRETE_LIBRARY.keys()))
-        self.concrete_option.grid(row=3, column=0, padx=20, pady=5)
-        
-        # Set default value if library is not empty
-        if CONCRETE_LIBRARY:
-            self.concrete_option.set(list(CONCRETE_LIBRARY.keys())[2]) 
-        
-        self.lbl_steel = ctk.CTkLabel(self.sidebar_frame, text=self.tr("steel_grade"), anchor="w")
-        self.lbl_steel.grid(row=4, column=0, padx=20, pady=(10, 0), sticky="w")
-        
-        self.steel_option = ctk.CTkOptionMenu(self.sidebar_frame, 
-                                              values=list(STEEL_LIBRARY.keys()))
-        self.steel_option.grid(row=5, column=0, padx=20, pady=5)
+        self.lbl_fck = ctk.CTkLabel(self.sidebar_frame, text=self.tr("fck"), anchor="w")
+        self.lbl_fck.grid(row=2, column=0, padx=20, pady=(10, 0), sticky="w")
+
+        self.entry_fck = ctk.CTkEntry(self.sidebar_frame, placeholder_text="30")
+        self.entry_fck.insert(0, "30")
+        self.entry_fck.grid(row=3, column=0, padx=20, pady=5)
+
+        self.lbl_fy = ctk.CTkLabel(self.sidebar_frame, text=self.tr("fy"), anchor="w")
+        self.lbl_fy.grid(row=4, column=0, padx=20, pady=(10, 0), sticky="w")
+
+        self.entry_fy = ctk.CTkEntry(self.sidebar_frame, placeholder_text="500")
+        self.entry_fy.insert(0, "500")
+        self.entry_fy.grid(row=5, column=0, padx=20, pady=5)
+
+        self.lbl_gamma_c = ctk.CTkLabel(self.sidebar_frame, text=self.tr("gamma_c"), anchor="w")
+        self.lbl_gamma_c.grid(row=6, column=0, padx=20, pady=(10, 0), sticky="w")
+
+        self.entry_gamma_c = ctk.CTkEntry(self.sidebar_frame, placeholder_text="1.4")
+        self.entry_gamma_c.insert(0, "1.4")
+        self.entry_gamma_c.grid(row=7, column=0, padx=20, pady=5)
+
+        self.lbl_gamma_s = ctk.CTkLabel(self.sidebar_frame, text=self.tr("gamma_s"), anchor="w")
+        self.lbl_gamma_s.grid(row=8, column=0, padx=20, pady=(10, 0), sticky="w")
+
+        self.entry_gamma_s = ctk.CTkEntry(self.sidebar_frame, placeholder_text="1.15")
+        self.entry_gamma_s.insert(0, "1.15")
+        self.entry_gamma_s.grid(row=9, column=0, padx=20, pady=5)
 
         # --- Section 2: Loading Inputs ---
         self.lbl_n_force = ctk.CTkLabel(self.sidebar_frame, text=self.tr("normal_force"), anchor="w")
-        self.lbl_n_force.grid(row=6, column=0, padx=20, pady=(20, 0), sticky="w")
+        self.lbl_n_force.grid(row=10, column=0, padx=20, pady=(20, 0), sticky="w")
 
         self.entry_n_force = ctk.CTkEntry(self.sidebar_frame, placeholder_text="0.0")
-        self.entry_n_force.grid(row=7, column=0, padx=20, pady=5)
+        self.entry_n_force.grid(row=11, column=0, padx=20, pady=5)
 
         # --- Section 3: File Input with Help Button ---
         # A small frame to align the label and the help button horizontally
         file_label_frame = ctk.CTkFrame(self.sidebar_frame, fg_color="transparent")
-        file_label_frame.grid(row=8, column=0, padx=20, pady=(20, 0), sticky="ew")
+        file_label_frame.grid(row=12, column=0, padx=20, pady=(20, 0), sticky="ew")
         
         self.lbl_file = ctk.CTkLabel(file_label_frame, text=self.tr("geometry_dxf"), anchor="w")
         self.lbl_file.pack(side="left")
@@ -226,13 +244,13 @@ class App(ctk.CTk):
         self.btn_help.pack(side="right")
 
         self.path_entry = ctk.CTkEntry(self.sidebar_frame, placeholder_text=self.tr("select_dxf_placeholder"))
-        self.path_entry.grid(row=9, column=0, padx=20, pady=5)
+        self.path_entry.grid(row=13, column=0, padx=20, pady=5)
 
         self.btn_browse = ctk.CTkButton(self.sidebar_frame, text=self.tr("browse_file"),
                                         fg_color="transparent", border_width=2,
                                         text_color=("gray10", "#DCE4EE"),
                                         command=self.open_dxf_file)
-        self.btn_browse.grid(row=10, column=0, padx=20, pady=5, sticky="n")
+        self.btn_browse.grid(row=14, column=0, padx=20, pady=5, sticky="n")
 
         # --- Main Action Button ---
         self.btn_calculate = ctk.CTkButton(self.sidebar_frame, text=self.tr("run_analysis"),
@@ -240,11 +258,11 @@ class App(ctk.CTk):
                                            fg_color="#106A43", hover_color="#148F5C",
                                            font=ctk.CTkFont(size=14, weight="bold"),
                                            command=self.calculate_event)
-        self.btn_calculate.grid(row=11, column=0, padx=20, pady=30, sticky="ew")
+        self.btn_calculate.grid(row=15, column=0, padx=20, pady=30, sticky="ew")
 
         # --- Language Selector ---
         self.lbl_language = ctk.CTkLabel(self.sidebar_frame, text=self.tr("language"), anchor="w")
-        self.lbl_language.grid(row=12, column=0, padx=20, pady=(0, 0), sticky="w")
+        self.lbl_language.grid(row=16, column=0, padx=20, pady=(0, 0), sticky="w")
 
         self.language_option = ctk.CTkOptionMenu(
             self.sidebar_frame,
@@ -252,22 +270,22 @@ class App(ctk.CTk):
             command=self.change_language,
         )
         self.language_option.set("English")
-        self.language_option.grid(row=13, column=0, padx=20, pady=5)
+        self.language_option.grid(row=17, column=0, padx=20, pady=5)
 
         # --- Footer: Credits & Support ---
         self.separator = ctk.CTkFrame(self.sidebar_frame, height=2, fg_color="gray30")
-        self.separator.grid(row=15, column=0, sticky="ew", padx=20, pady=10)
+        self.separator.grid(row=19, column=0, sticky="ew", padx=20, pady=10)
 
         self.lbl_credits = ctk.CTkLabel(self.sidebar_frame, 
                                         text=self.tr("developed_by"),
                                         font=ctk.CTkFont(size=10), text_color="gray60")
-        self.lbl_credits.grid(row=16, column=0, padx=20, pady=(0, 5))
+        self.lbl_credits.grid(row=20, column=0, padx=20, pady=(0, 5))
 
         self.btn_support = ctk.CTkButton(self.sidebar_frame, text=self.tr("support"),
                                          height=25, fg_color="#FFDD00", text_color="black",
                                          hover_color="#E6C200",
                                          command=self.open_support_link)
-        self.btn_support.grid(row=17, column=0, padx=20, pady=(0, 20))
+        self.btn_support.grid(row=21, column=0, padx=20, pady=(0, 20))
 
     def create_main_area(self):
         """Creates the right main area with Tabs for Geometry and Results."""
@@ -323,8 +341,10 @@ class App(ctk.CTk):
         """
         # 1. Collect Input Data
         filepath = self.path_entry.get()
-        concrete_name = self.concrete_option.get()
-        steel_name = self.steel_option.get()
+        fck_str = self.entry_fck.get()
+        fy_str = self.entry_fy.get()
+        gamma_c_str = self.entry_gamma_c.get()
+        gamma_s_str = self.entry_gamma_s.get()
         n_force_str = self.entry_n_force.get()
 
         if not filepath:
@@ -341,6 +361,17 @@ class App(ctk.CTk):
             messagebox.showerror(self.tr("input_error"), self.tr("invalid_normal_force"))
             return
 
+        try:
+            fck = float(fck_str)
+            fy = float(fy_str)
+            gamma_c = float(gamma_c_str)
+            gamma_s = float(gamma_s_str)
+            if fck <= 0 or fy <= 0 or gamma_c <= 0 or gamma_s <= 0:
+                raise ValueError
+        except ValueError:
+            messagebox.showerror(self.tr("input_error"), self.tr("invalid_material_inputs"))
+            return
+
         # Convert kN to Newtons (Backend requires N)
         n_force_newtons = n_force_kn * 1000.0
 
@@ -355,12 +386,14 @@ class App(ctk.CTk):
             parser = DXFParser(filepath)
             builder = GeometryBuilder()
 
-            # 3. Retrieve Real Material Objects
-            mat_concrete = CONCRETE_LIBRARY[concrete_name]
-            mat_steel = STEEL_LIBRARY[steel_name]
+            # 3. Create NBR 6118 materials from user-defined inputs
+            design_code = NBR6118(gamma_c=gamma_c, gamma_s=gamma_s)
+            mat_concrete = design_code.create_concrete_material(fck=fck)
+            mat_steel = design_code.create_steel_material(fy=fy)
 
             # 4. Build Section
             section = builder.build_section(parser.parse(), mat_concrete, mat_steel)
+            design_code.assign_concrete_section(section)
 
             # --- Plot Geometry (Immediate Feedback) ---
             print("Plotting geometry preview...")
@@ -369,10 +402,10 @@ class App(ctk.CTk):
 
             # 5. Execute Heavy Calculation
             print(f"Calculating interaction diagram for N = {n_force_kn} kN...")
-            bb_results = section.biaxial_bending_diagram(
-                n=n_force_newtons, 
-                n_points=24, 
-                progress_bar=False
+            bb_results, _phis = design_code.biaxial_bending_diagram(
+                n_design=n_force_newtons,
+                n_points=24,
+                progress_bar=False,
             )
 
             # 6. Display Results

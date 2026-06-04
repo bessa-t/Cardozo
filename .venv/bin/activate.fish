@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV /home/tarso/projects/biaxal_bending/Biaxial-Bending-Diagram/.venv
+set -gx VIRTUAL_ENV /home/tarso/dev/projetos/Biaxial-Bending-Diagram/.venv
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"bin $PATH

@@ -51,6 +51,9 @@ desktop.ini
 # Editor and IDE settings
 .idea/
 .vscode/
+.agents/
+.codex/
+.deox/
 *.swp
 *.swo
 *~
