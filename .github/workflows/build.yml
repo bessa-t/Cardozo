@@ -24,7 +24,13 @@ jobs:
           pip install -r requirements-build.txt
 
       - name: Build executable
-        run: python -m PyInstaller Cardozo.spec
+        run: |
+          python -m PyInstaller `
+            --onefile `
+            --windowed `
+            --name Cardozo `
+            --paths src `
+            src/cardozo/main.py
 
       - name: Upload to release
         uses: softprops/action-gh-release@v2
