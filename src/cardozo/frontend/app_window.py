@@ -8,22 +8,26 @@ from cardozo.backend.dxf_parser import DXFParser
 from cardozo.backend.geometry_builder import GeometryBuilder
 from cardozo.backend.nbr6118 import NBR6118
 
+GITHUB_REPO_URL = "https://github.com/bessa-t/Cardozo"
+NEWTONS_PER_KGF = 9.80665
+KNM_TO_KGFM = 1000.0 / NEWTONS_PER_KGF
+
 TRANSLATIONS = {
     "en": {
         "window_title": "Cardozo - Biaxial Bending Analysis",
         "subtitle": "Structural Analysis v1.0",
-        "fck": "fck (MPa):",
-        "fy": "fy (MPa):",
-        "gamma_c": "Concrete resistance weighting coefficient (γc):",
-        "gamma_s": "Steel resistance weighting coefficient (γs):",
-        "normal_force": "Normal Force (kN):",
+        "fck": "fck:",
+        "fy": "fy:",
+        "gamma_c": "γc:",
+        "gamma_s": "γs:",
+        "normal_force": "Normal Force:",
         "geometry_dxf": "Geometry (DXF):",
         "select_dxf_placeholder": "Select .dxf file...",
         "browse_file": "Browse File",
         "run_analysis": "RUN ANALYSIS",
         "processing": "Processing...",
         "developed_by": "Developed by Tarso Bessa\nbessatarso@gmail.com",
-        "support": "Support Me",
+        "support": "Support on GitHub",
         "language": "Language:",
         "tab_geometry": "Geometry Preview",
         "tab_results": "Interaction Diagram",
@@ -52,23 +56,23 @@ TRANSLATIONS = {
         "calculation_error": "Calculation Error",
         "calculation_error_message": "An error occurred during analysis:\n{error}",
         "geometry_plot_title": "Cross Section View",
-        "diagram_title": "Interaction Diagram (N = {n_val} kN)",
+        "diagram_title": "Interaction Diagram (N = {n_val:g} kgf)",
     },
     "pt": {
         "window_title": "Cardozo - Análise de Flexão Biaxial",
         "subtitle": "Análise Estrutural v1.0",
-        "fck": "fck (MPa):",
-        "fy": "fy (MPa):",
-        "gamma_c": "Coeficiente de ponderação da resistência do concreto (γc):",
-        "gamma_s": "Coeficiente de ponderação da resistência do aço (γs):",
-        "normal_force": "Força normal (kN):",
+        "fck": "fck:",
+        "fy": "fy:",
+        "gamma_c": "γc:",
+        "gamma_s": "γs:",
+        "normal_force": "Força normal:",
         "geometry_dxf": "Geometria (DXF):",
         "select_dxf_placeholder": "Selecione o arquivo .dxf...",
         "browse_file": "Buscar arquivo",
         "run_analysis": "EXECUTAR ANÁLISE",
         "processing": "Processando...",
         "developed_by": "Desenvolvido por Tarso Bessa\nbessatarso@gmail.com",
-        "support": "Apoiar",
+        "support": "Apoiar no GitHub",
         "language": "Idioma:",
         "tab_geometry": "Prévia da geometria",
         "tab_results": "Diagrama de interação",
@@ -97,7 +101,7 @@ TRANSLATIONS = {
         "calculation_error": "Erro de cálculo",
         "calculation_error_message": "Ocorreu um erro durante a análise:\n{error}",
         "geometry_plot_title": "Vista da seção transversal",
-        "diagram_title": "Diagrama de interação (N = {n_val} kN)",
+        "diagram_title": "Diagrama de interação (N = {n_val:g} kgf)",
     },
 }
 
@@ -115,9 +119,11 @@ class App(ctk.CTk):
 
         # 1. Main Window Setup
         self.title(self.tr("window_title"))
-        self.geometry("1200x800") 
+        self.geometry("1200x800")
+        self.minsize(980, 620)
         
         # Grid Configuration: Fixed Sidebar (0), Expandable Content (1)
+        self.grid_columnconfigure(0, minsize=250)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
@@ -178,11 +184,12 @@ class App(ctk.CTk):
 
     def create_sidebar(self):
         """Creates the left sidebar menu with input controls and credits."""
-        self.sidebar_frame = ctk.CTkFrame(self, width=220, corner_radius=0)
+        self.sidebar_frame = ctk.CTkFrame(self, width=250, corner_radius=0)
         self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
+        self.sidebar_frame.grid_columnconfigure(0, weight=1)
         
         # Push footer to the bottom using row weights
-        self.sidebar_frame.grid_rowconfigure(18, weight=1)
+        self.sidebar_frame.grid_rowconfigure(10, weight=1)
 
         # --- Header ---
         self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="CARDOZO",
@@ -191,48 +198,62 @@ class App(ctk.CTk):
         
         self.sub_label = ctk.CTkLabel(self.sidebar_frame, text=self.tr("subtitle"),
                                        text_color="gray", font=ctk.CTkFont(size=12))
-        self.sub_label.grid(row=1, column=0, padx=20, pady=(0, 20))
+        self.sub_label.grid(row=1, column=0, padx=20, pady=(0, 14))
 
         # --- Section 1: Materials ---
-        self.lbl_fck = ctk.CTkLabel(self.sidebar_frame, text=self.tr("fck"), anchor="w")
-        self.lbl_fck.grid(row=2, column=0, padx=20, pady=(10, 0), sticky="w")
+        self.material_frame = ctk.CTkFrame(self.sidebar_frame, fg_color="transparent")
+        self.material_frame.grid(row=2, column=0, padx=18, pady=(4, 0), sticky="ew")
 
-        self.entry_fck = ctk.CTkEntry(self.sidebar_frame, placeholder_text="30")
+        self.lbl_fck, self.entry_fck = self.create_value_row(
+            self.material_frame,
+            row=0,
+            label_text=self.tr("fck"),
+            placeholder_text="30",
+            unit_text="MPa",
+        )
         self.entry_fck.insert(0, "30")
-        self.entry_fck.grid(row=3, column=0, padx=20, pady=5)
 
-        self.lbl_fy = ctk.CTkLabel(self.sidebar_frame, text=self.tr("fy"), anchor="w")
-        self.lbl_fy.grid(row=4, column=0, padx=20, pady=(10, 0), sticky="w")
-
-        self.entry_fy = ctk.CTkEntry(self.sidebar_frame, placeholder_text="500")
+        self.lbl_fy, self.entry_fy = self.create_value_row(
+            self.material_frame,
+            row=1,
+            label_text=self.tr("fy"),
+            placeholder_text="500",
+            unit_text="MPa",
+        )
         self.entry_fy.insert(0, "500")
-        self.entry_fy.grid(row=5, column=0, padx=20, pady=5)
 
-        self.lbl_gamma_c = ctk.CTkLabel(self.sidebar_frame, text=self.tr("gamma_c"), anchor="w")
-        self.lbl_gamma_c.grid(row=6, column=0, padx=20, pady=(10, 0), sticky="w")
-
-        self.entry_gamma_c = ctk.CTkEntry(self.sidebar_frame, placeholder_text="1.4")
+        self.lbl_gamma_c, self.entry_gamma_c = self.create_value_row(
+            self.material_frame,
+            row=2,
+            label_text=self.tr("gamma_c"),
+            placeholder_text="1.4",
+        )
         self.entry_gamma_c.insert(0, "1.4")
-        self.entry_gamma_c.grid(row=7, column=0, padx=20, pady=5)
 
-        self.lbl_gamma_s = ctk.CTkLabel(self.sidebar_frame, text=self.tr("gamma_s"), anchor="w")
-        self.lbl_gamma_s.grid(row=8, column=0, padx=20, pady=(10, 0), sticky="w")
-
-        self.entry_gamma_s = ctk.CTkEntry(self.sidebar_frame, placeholder_text="1.15")
+        self.lbl_gamma_s, self.entry_gamma_s = self.create_value_row(
+            self.material_frame,
+            row=3,
+            label_text=self.tr("gamma_s"),
+            placeholder_text="1.15",
+        )
         self.entry_gamma_s.insert(0, "1.15")
-        self.entry_gamma_s.grid(row=9, column=0, padx=20, pady=5)
 
         # --- Section 2: Loading Inputs ---
-        self.lbl_n_force = ctk.CTkLabel(self.sidebar_frame, text=self.tr("normal_force"), anchor="w")
-        self.lbl_n_force.grid(row=10, column=0, padx=20, pady=(20, 0), sticky="w")
-
-        self.entry_n_force = ctk.CTkEntry(self.sidebar_frame, placeholder_text="0.0")
-        self.entry_n_force.grid(row=11, column=0, padx=20, pady=5)
+        self.load_frame = ctk.CTkFrame(self.sidebar_frame, fg_color="transparent")
+        self.load_frame.grid(row=3, column=0, padx=18, pady=(12, 0), sticky="ew")
+        self.lbl_n_force, self.entry_n_force = self.create_value_row(
+            self.load_frame,
+            row=0,
+            label_text=self.tr("normal_force"),
+            placeholder_text="0.0",
+            unit_text="kgf",
+            entry_width=82,
+        )
 
         # --- Section 3: File Input with Help Button ---
         # A small frame to align the label and the help button horizontally
         file_label_frame = ctk.CTkFrame(self.sidebar_frame, fg_color="transparent")
-        file_label_frame.grid(row=12, column=0, padx=20, pady=(20, 0), sticky="ew")
+        file_label_frame.grid(row=4, column=0, padx=20, pady=(16, 0), sticky="ew")
         
         self.lbl_file = ctk.CTkLabel(file_label_frame, text=self.tr("geometry_dxf"), anchor="w")
         self.lbl_file.pack(side="left")
@@ -244,13 +265,13 @@ class App(ctk.CTk):
         self.btn_help.pack(side="right")
 
         self.path_entry = ctk.CTkEntry(self.sidebar_frame, placeholder_text=self.tr("select_dxf_placeholder"))
-        self.path_entry.grid(row=13, column=0, padx=20, pady=5)
+        self.path_entry.grid(row=5, column=0, padx=20, pady=5, sticky="ew")
 
         self.btn_browse = ctk.CTkButton(self.sidebar_frame, text=self.tr("browse_file"),
                                         fg_color="transparent", border_width=2,
                                         text_color=("gray10", "#DCE4EE"),
                                         command=self.open_dxf_file)
-        self.btn_browse.grid(row=14, column=0, padx=20, pady=5, sticky="n")
+        self.btn_browse.grid(row=6, column=0, padx=20, pady=5, sticky="ew")
 
         # --- Main Action Button ---
         self.btn_calculate = ctk.CTkButton(self.sidebar_frame, text=self.tr("run_analysis"),
@@ -258,11 +279,11 @@ class App(ctk.CTk):
                                            fg_color="#106A43", hover_color="#148F5C",
                                            font=ctk.CTkFont(size=14, weight="bold"),
                                            command=self.calculate_event)
-        self.btn_calculate.grid(row=15, column=0, padx=20, pady=30, sticky="ew")
+        self.btn_calculate.grid(row=7, column=0, padx=20, pady=(18, 14), sticky="ew")
 
         # --- Language Selector ---
         self.lbl_language = ctk.CTkLabel(self.sidebar_frame, text=self.tr("language"), anchor="w")
-        self.lbl_language.grid(row=16, column=0, padx=20, pady=(0, 0), sticky="w")
+        self.lbl_language.grid(row=8, column=0, padx=20, pady=(0, 0), sticky="w")
 
         self.language_option = ctk.CTkOptionMenu(
             self.sidebar_frame,
@@ -270,22 +291,50 @@ class App(ctk.CTk):
             command=self.change_language,
         )
         self.language_option.set("English")
-        self.language_option.grid(row=17, column=0, padx=20, pady=5)
+        self.language_option.grid(row=9, column=0, padx=20, pady=5, sticky="ew")
 
         # --- Footer: Credits & Support ---
         self.separator = ctk.CTkFrame(self.sidebar_frame, height=2, fg_color="gray30")
-        self.separator.grid(row=19, column=0, sticky="ew", padx=20, pady=10)
+        self.separator.grid(row=11, column=0, sticky="ew", padx=20, pady=(8, 8))
 
         self.lbl_credits = ctk.CTkLabel(self.sidebar_frame, 
                                         text=self.tr("developed_by"),
                                         font=ctk.CTkFont(size=10), text_color="gray60")
-        self.lbl_credits.grid(row=20, column=0, padx=20, pady=(0, 5))
+        self.lbl_credits.grid(row=12, column=0, padx=20, pady=(0, 5))
 
         self.btn_support = ctk.CTkButton(self.sidebar_frame, text=self.tr("support"),
-                                         height=25, fg_color="#FFDD00", text_color="black",
-                                         hover_color="#E6C200",
+                                         height=30, fg_color="#24292F", text_color="white",
+                                         hover_color="#3B424A",
                                          command=self.open_support_link)
-        self.btn_support.grid(row=21, column=0, padx=20, pady=(0, 20))
+        self.btn_support.grid(row=13, column=0, padx=20, pady=(0, 14), sticky="ew")
+
+    def create_value_row(
+        self,
+        parent,
+        row,
+        label_text,
+        placeholder_text,
+        unit_text="",
+        entry_width=76,
+    ):
+        """Creates a compact label + value + unit row."""
+        parent.grid_columnconfigure(1, weight=1)
+        label = ctk.CTkLabel(parent, text=label_text, anchor="w")
+        label.grid(row=row, column=0, padx=(0, 8), pady=4, sticky="w")
+
+        entry = ctk.CTkEntry(parent, placeholder_text=placeholder_text, width=entry_width)
+        entry.grid(row=row, column=1, padx=(0, 6), pady=4, sticky="e")
+
+        unit_label = ctk.CTkLabel(
+            parent,
+            text=unit_text,
+            width=34,
+            text_color="gray70",
+            anchor="w",
+        )
+        unit_label.grid(row=row, column=2, padx=(0, 0), pady=4, sticky="w")
+
+        return label, entry
 
     def create_main_area(self):
         """Creates the right main area with Tabs for Geometry and Results."""
@@ -320,9 +369,7 @@ class App(ctk.CTk):
 
     def open_support_link(self):
         """Opens the support URL in the default browser."""
-        # Replace with your actual support link
-        url = "https://www.buymeacoffee.com/tarso" 
-        webbrowser.open(url)
+        webbrowser.open(GITHUB_REPO_URL)
     
     def open_dxf_file(self):
         """Opens system file dialog to select the DXF."""
@@ -354,9 +401,9 @@ class App(ctk.CTk):
         # Handle Normal Force Input (String to Float conversion)
         try:
             if n_force_str.strip() == "":
-                n_force_kn = 0.0
+                n_force_kgf = 0.0
             else:
-                n_force_kn = float(n_force_str)
+                n_force_kgf = float(n_force_str)
         except ValueError:
             messagebox.showerror(self.tr("input_error"), self.tr("invalid_normal_force"))
             return
@@ -372,8 +419,8 @@ class App(ctk.CTk):
             messagebox.showerror(self.tr("input_error"), self.tr("invalid_material_inputs"))
             return
 
-        # Convert kN to Newtons (Backend requires N)
-        n_force_newtons = n_force_kn * 1000.0
+        # Convert kgf to Newtons for the analysis engine.
+        n_force_newtons = n_force_kgf * NEWTONS_PER_KGF
 
         # UI Feedback
         self.btn_calculate.configure(text=self.tr("processing"), state="disabled")
@@ -401,7 +448,7 @@ class App(ctk.CTk):
             self.update()
 
             # 5. Execute Heavy Calculation
-            print(f"Calculating interaction diagram for N = {n_force_kn} kN...")
+            print(f"Calculating interaction diagram for N = {n_force_kgf} kgf...")
             bb_results, _phis = design_code.biaxial_bending_diagram(
                 n_design=n_force_newtons,
                 n_points=24,
@@ -409,7 +456,7 @@ class App(ctk.CTk):
             )
 
             # 6. Display Results
-            self.plot_results_embedded(bb_results, n_force_kn)
+            self.plot_results_embedded(bb_results, n_force_kgf)
             
             # Switch tab to show results
             self.tab_view.set(self.tab_results_name)
@@ -474,17 +521,20 @@ class App(ctk.CTk):
         fig = plt.Figure(figsize=(5, 5), dpi=100)
         ax = fig.add_subplot(111)
 
-        # Attempt to plot using the library's method
-        try:
-            results_obj.plot_diagram(ax=ax)
-        except TypeError:
-            pass # Handle cases where direct plotting might fail
+        m_x_list, m_y_list = results_obj.get_results_lists()
+        m_x_kgfm = [m_x * KNM_TO_KGFM for m_x in m_x_list]
+        m_y_kgfm = [m_y * KNM_TO_KGFM for m_y in m_y_list]
+        ax.plot(m_x_kgfm, m_y_kgfm, "o-", color="#4EA3F1", linewidth=1.8, markersize=4)
+        ax.axhline(0, color="white", linewidth=0.8, alpha=0.35)
+        ax.axvline(0, color="white", linewidth=0.8, alpha=0.35)
 
         # Customize Chart
         ax.set_title(self.tr("diagram_title").format(n_val=n_val), color="white")
-        ax.set_xlabel("Mx (kN.m)")
-        ax.set_ylabel("My (kN.m)")
+        ax.set_xlabel("Mx (kgf.m)")
+        ax.set_ylabel("My (kgf.m)")
+        ax.set_aspect("equal", adjustable="datalim")
         ax.grid(True, linestyle='--', alpha=0.3)
+        fig.tight_layout()
 
         # Embed in Tkinter
         canvas = FigureCanvasTkAgg(fig, master=self.tab_results)

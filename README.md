@@ -215,7 +215,7 @@ Computational tool for automatic generation of the biaxial bending resistance su
 
 ### Motivation
 
-[![Cathedral of Brasília](docs/Cathedral.jpg)](https://www.pexels.com/pt-br/foto/catedral-metropolitana-brasilia-13145396/)
+[![Cathedral of Brasília](docs/images/Cathedral.jpg)](https://www.pexels.com/pt-br/foto/catedral-metropolitana-brasilia-13145396/)
 *Cathedral of Brasília — Oscar Niemeyer, structural engineering by Joaquim Cardozo. The 16 columns with parabolic cross-section and hyperbolic profile represent the structural problem that motivated this tool. Photo: [Pexels](https://www.pexels.com/pt-br/foto/catedral-metropolitana-brasilia-13145396/).*
 
 Structural verification of columns with non-conventional geometry requires constructing the full resistance surface in the `N–Mx–My` space. This surface defines, for each level of axial force, the set of biaxial bending moment combinations the section can sustain at the ultimate limit state.
