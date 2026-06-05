@@ -19,7 +19,7 @@ Software computacional para geração automática da superfície de resistência
 
 ### Motivação
 
-[![Catedral Metropolitana de Brasília](docs/Cathedral.jpg)](https://www.pexels.com/pt-br/foto/catedral-metropolitana-brasilia-13145396/)
+[![Catedral Metropolitana de Brasília](docs/images/Cathedral.jpg)](https://www.pexels.com/pt-br/foto/catedral-metropolitana-brasilia-13145396/)
 *Catedral Metropolitana de Brasília — Oscar Niemeyer, cálculo estrutural de Joaquim Cardozo. Os 16 pilares com seção transversal parabólica e perfil hiperbólico representam o problema central que motivou o desenvolvimento desta ferramenta. Foto: [Pexels](https://www.pexels.com/pt-br/foto/catedral-metropolitana-brasilia-13145396/).*
 
 A verificação estrutural de pilares com geometria não convencional exige a construção da superfície de resistência completa no espaço `N–Mx–My`. Essa superfície define, para cada nível de força normal, o conjunto de combinações de momentos fletores que a seção consegue suportar no estado limite último.
