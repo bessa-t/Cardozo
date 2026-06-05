@@ -28,9 +28,6 @@ dist/
 *.manifest
 *.log
 
-# Keep the project spec file tracked
-!Cardozo.spec
-
 # Local environment and secrets
 .env
 .env.*
