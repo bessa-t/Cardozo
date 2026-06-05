@@ -31,5 +31,4 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     runtime_tmpdir=None,
-    onefile=True,
 )
